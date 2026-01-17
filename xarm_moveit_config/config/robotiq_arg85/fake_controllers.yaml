@@ -1,0 +1,12 @@
+controller_names:
+  - robotiq_gripper_traj_controller
+
+robotiq_gripper_traj_controller:
+  type: joint_trajectory_controller/JointTrajectoryController
+  joints:
+    - finger_joint
+  command_interfaces:
+    - position
+  state_interfaces:
+    - position
+    - velocity

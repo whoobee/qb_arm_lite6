@@ -1,0 +1,9 @@
+controller_names:
+  - robotiq_gripper_traj_controller
+
+robotiq_gripper_traj_controller:
+  action_ns: robotiq_gripper/gripper_action
+  type: GripperCommand
+  default: True
+  joints:
+    - finger_joint

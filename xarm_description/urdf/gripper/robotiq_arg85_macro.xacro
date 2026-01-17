@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="robotiq_arg85_macro">
+  <xacro:include filename="$(find xarm_description)/urdf/gripper/robotiq_arg85.urdf.xacro" />
+  <xacro:include filename="$(find xarm_description)/urdf/gripper/robotiq_arg85.ros2_control.xacro" />
+
+  <xacro:macro name="robotiq_arg85_macro" params="prefix:='' attach_to:='' attach_xyz:='0 0 0' attach_rpy:='0 0 0' 
+    ros2_control_plugin:='uf_robot_hardware/UFRobotFakeSystemHardware' ">
+
+    <xacro:if value="${is_ros2 and ros2_control_plugin != 'uf_robot_hardware/UFRobotSystemHardware'}">
+      <xacro:robotiq_arg85_ros2_control prefix="${prefix}" ros2_control_plugin="${ros2_control_plugin}" />
+    </xacro:if>
+
+    <xacro:robotiq_arg85_urdf prefix="${prefix}" attach_to="${attach_to}" attach_xyz="${attach_xyz}" attach_rpy="${attach_rpy}" />
+
+  </xacro:macro>
+</robot>
