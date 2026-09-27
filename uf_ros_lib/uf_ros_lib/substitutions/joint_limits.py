@@ -19,7 +19,7 @@ class JointLimitsYAML(BaseYamlSubstitution):
 
     def __init__(self, file_path, package_path=None, 
         prefix='', robot_type='xarm', robot_dof=7, 
-        add_gripper=False, add_bio_gripper=False, add_robotiq_arg85=False):
+        add_gripper=False, add_bio_gripper=False):
         super().__init__()
         self.__package_path = package_path
         self.__file_path = file_path
@@ -28,7 +28,6 @@ class JointLimitsYAML(BaseYamlSubstitution):
         self.__robot_dof = robot_dof
         self.__add_gripper = add_gripper
         self.__add_bio_gripper = add_bio_gripper
-        self.__add_robotiq_arg85 = add_robotiq_arg85
 
     @classmethod
     def parse(cls, data):
@@ -41,15 +40,14 @@ class JointLimitsYAML(BaseYamlSubstitution):
 
     def describe(self):
         """Return a description of this substitution as a string."""
-        return 'JointLimitsYAML(file_path={}, package_path={}, prefix={}, robot_type={}, robot_dof={}, add_gripper={}, add_bio_gripper={}, add_robotiq_arg85={})'.format(
+        return 'JointLimitsYAML(file_path={}, package_path={}, prefix={}, robot_type={}, robot_dof={}, add_gripper={}, add_bio_gripper={})'.format(
             self.get_var_describe(self.__file_path), 
             self.get_var_describe(self.__package_path),
             self.get_var_describe(self.__prefix),
             self.get_var_describe(self.__robot_type),
             self.get_var_describe(self.__robot_dof),
             self.get_var_describe(self.__add_gripper),
-            self.get_var_describe(self.__add_bio_gripper),
-            self.get_var_describe(self.__add_robotiq_arg85)
+            self.get_var_describe(self.__add_bio_gripper)
         )
 
     def perform(self, context):
@@ -61,7 +59,6 @@ class JointLimitsYAML(BaseYamlSubstitution):
         robot_dof = self.get_var_perform(self.__robot_dof, context)
         add_gripper = self.get_var_perform(self.__add_gripper, context).lower() == 'true'
         add_bio_gripper = self.get_var_perform(self.__add_bio_gripper, context).lower() == 'true'
-        add_robotiq_arg85 = self.get_var_perform(self.__add_robotiq_arg85, context).lower() == 'true'
 
         robot_name = '{}{}'.format(robot_type, robot_dof if robot_type == 'xarm' else '6' if robot_type == 'lite' else '')
         file_path = self.__file_path if self.__file_path else (self.__package_path / 'config' / robot_name / 'joint_limits.yaml')
@@ -74,10 +71,6 @@ class JointLimitsYAML(BaseYamlSubstitution):
                 joint_limits['joint_limits'].update(gripper_joint_limits_yaml['joint_limits'])
         elif robot_type != 'lite' and add_bio_gripper:
             gripper_joint_limits_yaml = load_yaml(self.__package_path / 'config' / 'bio_gripper' / 'joint_limits.yaml')
-            if gripper_joint_limits_yaml and 'joint_limits' in gripper_joint_limits_yaml:
-                joint_limits['joint_limits'].update(gripper_joint_limits_yaml['joint_limits'])
-        elif add_robotiq_arg85:
-            gripper_joint_limits_yaml = load_yaml(self.__package_path / 'config' / 'robotiq_arg85' / 'joint_limits.yaml')
             if gripper_joint_limits_yaml and 'joint_limits' in gripper_joint_limits_yaml:
                 joint_limits['joint_limits'].update(gripper_joint_limits_yaml['joint_limits'])
         if prefix:

@@ -10,7 +10,7 @@
   <!-- CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group -->
   <!-- SUBGROUPS: Groups can also be formed by referencing to already defined group names -->
   <xacro:macro name="lite6_macro_srdf" params="prefix='' 
-    add_gripper='false' add_vacuum_gripper='false' add_robotiq_arg85='false' add_other_geometry='false' ">
+    add_gripper='false' add_vacuum_gripper='false' add_other_geometry='false' ">
     <group name="${prefix}lite6">
       <joint name="${prefix}world_joint" />
       <joint name="${prefix}joint1" />
@@ -25,14 +25,11 @@
         <joint name="${prefix}gripper_fix" />
         <joint name="${prefix}joint_tcp" />
       </xacro:if>
-      <xacro:if value="${not add_gripper and add_robotiq_arg85}">
-        <joint name="${prefix}robotiq_arg85_base_joint" />
-      </xacro:if>
-      <xacro:if value="${not add_gripper and not add_robotiq_arg85 and add_vacuum_gripper}">
+      <xacro:if value="${not add_gripper and add_vacuum_gripper}">
         <joint name="${prefix}vacuum_gripper_fix" />
         <joint name="${prefix}joint_tcp" />
       </xacro:if>
-      <xacro:if value="${not add_gripper and not add_robotiq_arg85 and not add_vacuum_gripper and add_other_geometry}">
+      <xacro:if value="${not add_gripper and not add_vacuum_gripper and add_other_geometry}">
         <joint name="${prefix}other_geometry_fix" />
         <joint name="${prefix}joint_tcp" />
       </xacro:if>
@@ -49,43 +46,38 @@
 
     <!-- gripper -->
     <xacro:if value="${add_gripper}">
-      <!-- <group name="${prefix}lite_gripper">
-        <joint name="${prefix}gripper_fix" />
-        <joint name="${prefix}joint_tcp" />
-      </group> -->
+      <group name="${prefix}lite_gripper">
+        <link name="${prefix}uflite_gripper_link" />
+        <link name="${prefix}uflite_finger1" />
+        <link name="${prefix}uflite_finger2" />
+        <joint name="${prefix}finger_joint1" />
+      </group>
+      <group_state name="open" group="${prefix}lite_gripper">
+        <joint name="${prefix}finger_joint1" value="0.01" />
+      </group_state>
+      <group_state name="close" group="${prefix}lite_gripper">
+        <joint name="${prefix}finger_joint1" value="0" />
+      </group_state>
       <!-- END EFFECTOR, Purpose, Represent information about an end effector. -->
-      <!-- <end_effector name="${prefix}lite_gripper" parent_link="${prefix}link_tcp" group="${prefix}lite_gripper" /> -->
-      <passive_joint name="${prefix}gripper_fix" />
+      <end_effector name="${prefix}lite_gripper" parent_link="${prefix}link_tcp" group="${prefix}lite_gripper" />
+      <passive_joint name="${prefix}finger_joint2" />
       <!--PASSIVE JOINT, Purpose, this element is used to mark joints that are not actuated-->
       <!-- DISABLE COLLISIONS, By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
-      <disable_collisions link1="${prefix}link5" link2="${prefix}uflite_gripper_link" reason="Never" />
-      <disable_collisions link1="${prefix}link6" link2="${prefix}uflite_gripper_link" reason="Never" />
-      <disable_collisions link1="${prefix}link_eef" link2="${prefix}uflite_gripper_link" reason="Adjacent" />
-    </xacro:if>
-
-    <xacro:if value="${not add_gripper and add_robotiq_arg85}">
-      <group name="${prefix}robotiq_arg85">
-        <joint name="${prefix}finger_joint" />
-      </group>
-      <end_effector name="${prefix}robotiq_arg85" parent_link="${prefix}link_eef" group="${prefix}robotiq_arg85" />
-      <passive_joint name="${prefix}left_inner_knuckle_joint" />
-      <passive_joint name="${prefix}left_inner_finger_joint" />
-      <passive_joint name="${prefix}right_inner_knuckle_joint" />
-      <passive_joint name="${prefix}right_inner_finger_joint" />
-      <passive_joint name="${prefix}right_outer_knuckle_joint" />
-      <disable_collisions link1="${prefix}link5" link2="${prefix}robotiq_85_base_link" reason="Never" />
-      <disable_collisions link1="${prefix}link6" link2="${prefix}robotiq_85_base_link" reason="Never" />
-      <disable_collisions link1="${prefix}link_eef" link2="${prefix}robotiq_85_base_link" reason="Adjacent" />
-      <disable_collisions link1="${prefix}robotiq_85_base_link" link2="${prefix}left_outer_knuckle" reason="Adjacent" />
-      <disable_collisions link1="${prefix}robotiq_85_base_link" link2="${prefix}left_inner_knuckle" reason="Adjacent" />
-      <disable_collisions link1="${prefix}robotiq_85_base_link" link2="${prefix}right_outer_knuckle" reason="Adjacent" />
-      <disable_collisions link1="${prefix}robotiq_85_base_link" link2="${prefix}right_inner_knuckle" reason="Adjacent" />
-      <disable_collisions link1="${prefix}left_outer_knuckle" link2="${prefix}left_outer_finger" reason="Adjacent" />
-      <disable_collisions link1="${prefix}left_inner_knuckle" link2="${prefix}left_inner_finger" reason="Adjacent" />
-      <disable_collisions link1="${prefix}right_outer_knuckle" link2="${prefix}right_outer_finger" reason="Adjacent" />
-      <disable_collisions link1="${prefix}right_inner_knuckle" link2="${prefix}right_inner_finger" reason="Adjacent" />
-      <disable_collisions link1="${prefix}left_outer_finger" link2="${prefix}left_inner_finger" reason="Default" />
-      <disable_collisions link1="${prefix}right_outer_finger" link2="${prefix}right_inner_finger" reason="Default" />
+      <disable_collisions link1="${prefix}uflite_gripper_link" link2="${prefix}uflite_finger1" reason="Adjacent" />
+      <disable_collisions link1="${prefix}uflite_gripper_link" link2="${prefix}uflite_finger2" reason="Adjacent" />
+      <disable_collisions link1="${prefix}uflite_finger1" link2="${prefix}uflite_finger2" reason="Never" />
+      <disable_collisions link1="${prefix}uflite_gripper_link" link2="${prefix}link4" reason="Never" />
+      <disable_collisions link1="${prefix}uflite_gripper_link" link2="${prefix}link5" reason="Never" />
+      <disable_collisions link1="${prefix}uflite_gripper_link" link2="${prefix}link6" reason="Adjacent" />
+      <disable_collisions link1="${prefix}uflite_gripper_link" link2="${prefix}link_eef" reason="Adjacent" />
+      <disable_collisions link1="${prefix}uflite_finger1" link2="${prefix}link4" reason="Never" />
+      <disable_collisions link1="${prefix}uflite_finger1" link2="${prefix}link5" reason="Never" />
+      <disable_collisions link1="${prefix}uflite_finger1" link2="${prefix}link6" reason="Never" />
+      <disable_collisions link1="${prefix}uflite_finger1" link2="${prefix}link_eef" reason="Never" />
+      <disable_collisions link1="${prefix}uflite_finger2" link2="${prefix}link4" reason="Never" />
+      <disable_collisions link1="${prefix}uflite_finger2" link2="${prefix}link5" reason="Never" />
+      <disable_collisions link1="${prefix}uflite_finger2" link2="${prefix}link6" reason="Never" />
+      <disable_collisions link1="${prefix}uflite_finger2" link2="${prefix}link_eef" reason="Never" />
     </xacro:if>
 
     <!-- vacuum gripper -->

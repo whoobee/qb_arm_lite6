@@ -32,7 +32,6 @@ def launch_setup(context, *args, **kwargs):
     add_gripper = LaunchConfiguration('add_gripper', default=False)
     add_vacuum_gripper = LaunchConfiguration('add_vacuum_gripper', default=False)
     add_bio_gripper = LaunchConfiguration('add_bio_gripper', default=False)
-    add_robotiq_arg85 = LaunchConfiguration('add_robotiq_arg85', default=False)
     dof = LaunchConfiguration('dof', default=7)
     robot_type = LaunchConfiguration('robot_type', default='xarm')
     ros2_control_plugin = LaunchConfiguration('ros2_control_plugin', default='uf_robot_hardware/UFRobotSystemHardware')
@@ -89,7 +88,6 @@ def launch_setup(context, *args, **kwargs):
             add_gripper=add_gripper,
             add_vacuum_gripper=add_vacuum_gripper,
             add_bio_gripper=add_bio_gripper,
-            add_robotiq_arg85=add_robotiq_arg85,
             add_realsense_d435i=add_realsense_d435i,
             add_d435i_links=add_d435i_links,
             add_other_geometry=add_other_geometry,

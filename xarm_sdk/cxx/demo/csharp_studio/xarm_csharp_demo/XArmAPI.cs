@@ -189,13 +189,13 @@ namespace xarm_csharp_demo
         [DllImport("xarm.dll")]
         public static extern int get_reduced_mode(ref int mode, int instance_id = -1);
         [DllImport("xarm.dll")]
-        public static extern int get_reduced_states(ref int on, int[] xyz_list, ref float tcp_speed, ref float joint_speed, float[] jrange, ref int fense_is_on, ref int collision_rebound_is_on, int instance_id = -1);
+        public static extern int get_reduced_states(ref int on, int[] xyz_list, ref float tcp_speed, ref float joint_speed, float[] jrange, ref int fence_is_on, ref int collision_rebound_is_on, int instance_id = -1);
         [DllImport("xarm.dll")]
         public static extern int set_reduced_tcp_boundary(int[] boundary, int instance_id = -1);
         [DllImport("xarm.dll")]
         public static extern int set_reduced_joint_range(float[] jrange, int instance_id = -1);
         [DllImport("xarm.dll")]
-        public static extern int set_fense_mode(bool on, int instance_id = -1);
+        public static extern int set_fence_mode(bool on, int instance_id = -1);
         [DllImport("xarm.dll")]
         public static extern int set_collision_rebound(bool on, int instance_id = -1);
         [DllImport("xarm.dll")]
@@ -224,7 +224,7 @@ namespace xarm_csharp_demo
         public static extern int set_cgpio_analog_with_xyz(int ionum, float value, float[] xyz, float tol_r, int instance_id = -1);
 
         [DllImport("xarm.dll")]
-        public static extern int get_inverse_kinematics(float[] pose, float[] angles, int instance_id = -1);
+        public static extern int get_inverse_kinematics(float[] pose, float[] angles, bool limited = true, float[] ref_angles = null, int instance_id = -1);
         [DllImport("xarm.dll")]
         public static extern int get_forward_kinematics(float[] angles, float[] pose, int instance_id = -1);
         [DllImport("xarm.dll")]
@@ -277,7 +277,7 @@ namespace xarm_csharp_demo
         [DllImport("xarm.dll")]
         public static extern int get_tgpio_modbus_baudrate(ref int baud, int instance_id = -1);
         [DllImport("xarm.dll")]
-        public static extern int set_tgpio_modbus_use_503_port(bool use_503_port = true, int instance_id = -1);
+        public static extern int set_rs485_use_503_port(bool use_503_port = true, int instance_id = -1);
         [DllImport("xarm.dll")]
         public static extern int getset_tgpio_modbus_data(byte[] modbus_data, int modbus_length, byte[] ret_data, int ret_length, byte host_id = 9, bool is_transparent_transmission = false, bool use_503_port = false, int instance_id = -1);
         [DllImport("xarm.dll")]
@@ -309,7 +309,7 @@ namespace xarm_csharp_demo
         [DllImport("xarm.dll")]
         public static extern int iden_ft_sensor_load_offset(float[] result, int instance_id = -1);
         [DllImport("xarm.dll")]
-        public static extern int set_ft_sensor_load_offset(float[] load_offset, bool association_setting_tcp_load = false, float m = (float)0.270, float x = -17, float y = 9, float z = (float)11.8, int instance_id = -1);
+        public static extern int set_ft_sensor_load_offset(float[] load_offset, bool association_setting_tcp_load = false, float m = 0.27F, float x = -17, float y = 9, float z = 11.8F, int instance_id = -1);
         [DllImport("xarm.dll")]
         public static extern int set_ft_sensor_enable(int on_off, int instance_id = -1);
         [DllImport("xarm.dll")]
@@ -456,6 +456,12 @@ namespace xarm_csharp_demo
         public static extern int set_ft_admittance_ctrl_threshold(float[] thresholds, int instance_id = -1);
 
         [DllImport("xarm.dll")]
+        public static extern int set_external_device_monitor_params(int dev_type, int frequency, int instance_id = -1);
+
+        [DllImport("xarm.dll")]
+        public static extern int set_tgpio_monitor_params(int io_type, int frequency, int instance_id = -1);
+
+        [DllImport("xarm.dll")]
         public static extern int get_ft_collision_detection(ref int on_off, int instance_id = -1);
 
         [DllImport("xarm.dll")]
@@ -470,6 +476,11 @@ namespace xarm_csharp_demo
         [DllImport("xarm.dll")]
         public static extern int get_ft_admittance_ctrl_threshold(float[] thresholds, int instance_id = -1);
 
+        [DllImport("xarm.dll")]
+        public static extern int get_external_device_monitor_params(int[] monitor_params, int instance_id = -1);
+
+        [DllImport("xarm.dll")]
+        public static extern int get_tgpio_monitor_params(int[] monitor_params, int instance_id = -1);
 
         /* modbus tcp func_code: 0x01 */
         [DllImport("xarm.dll")]
@@ -637,7 +648,7 @@ namespace xarm_csharp_demo
         {
             return iden_ft_sensor_load_offset(result, instance_id);
         }
-        public static int ft_sensor_cali_load(float[] load_offset, bool association_setting_tcp_load = false, float m = (float)0.270, float x = -17, float y = 9, float z = (float)11.8, int instance_id = -1)
+        public static int ft_sensor_cali_load(float[] load_offset, bool association_setting_tcp_load = false, float m = 0.27F, float x = -17, float y = 9, float z = 11.8F, int instance_id = -1)
         {
             return set_ft_sensor_load_offset(load_offset, association_setting_tcp_load, m, x, y, z, instance_id);
         }

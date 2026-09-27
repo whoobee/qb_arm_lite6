@@ -33,6 +33,7 @@ def launch_setup(context, *args, **kwargs):
     attach_rpy = LaunchConfiguration('attach_rpy', default='"0 0 0"')
     mesh_suffix = LaunchConfiguration('mesh_suffix', default='stl')
     kinematics_suffix = LaunchConfiguration('kinematics_suffix', default='')
+    gripper_version = LaunchConfiguration('gripper_version', default='G1')
     
     add_gripper = LaunchConfiguration('add_gripper', default=False)
     add_vacuum_gripper = LaunchConfiguration('add_vacuum_gripper', default=False)
@@ -55,7 +56,10 @@ def launch_setup(context, *args, **kwargs):
     no_gui_ctrl = LaunchConfiguration('no_gui_ctrl', default=False)
     ros_namespace = LaunchConfiguration('ros_namespace', default='').perform(context)
 
-    ros2_control_plugin = 'gazebo_ros2_control/GazeboSystem'
+    gz_type = LaunchConfiguration('gz_type', default='gazebo').perform(context)
+    gz_type = 'ignition' if gz_type == 'ign' else gz_type
+
+    ros2_control_plugin = 'gz_ros2_control/GazeboSimSystem' if gz_type == 'gz' else 'ign_ros2_control/IgnitionSystem' if gz_type == 'ignition' else 'gazebo_ros2_control/GazeboSystem'
     controllers_name = 'fake_controllers'
 
     ros2_control_params = generate_ros2_control_params_temp_file(
@@ -88,6 +92,7 @@ def launch_setup(context, *args, **kwargs):
         kinematics_suffix=kinematics_suffix,
         ros2_control_plugin=ros2_control_plugin,
         ros2_control_params=ros2_control_params,
+        gripper_version=gripper_version,
         add_gripper=add_gripper,
         add_vacuum_gripper=add_vacuum_gripper,
         add_bio_gripper=add_bio_gripper,
@@ -137,6 +142,7 @@ def launch_setup(context, *args, **kwargs):
             'load_controller': 'true',
             'show_rviz': 'true',
             'no_gui_ctrl': no_gui_ctrl,
+            'gz_type': gz_type,
         }.items(),
     )
 

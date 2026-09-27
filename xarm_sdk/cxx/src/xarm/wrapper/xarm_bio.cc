@@ -103,7 +103,7 @@ int XArmAPI::_get_bio_gripper_sn(unsigned char *sn)
   }    
   else {
     bio_gripper_version_ = 2;
-    if (sn != NULL)
+    if (sn != nullptr)
       memcpy(sn, &rx_data[3], 32);
     return ret;
   }
@@ -122,7 +122,7 @@ int XArmAPI::_check_bio_gripper_version()
 {
   if (bio_gripper_version_ == 0)
   {
-    _get_bio_gripper_sn(NULL);
+    _get_bio_gripper_sn(nullptr);
   }
   if (bio_gripper_version_ == 2 && bio_gripper_mode_ == -1)
   {
@@ -137,6 +137,7 @@ int XArmAPI::set_bio_gripper_control_mode(int mode)
   unsigned char params[6] = { 0x08, 0x06, 0x11, 0x0A, 0x00, (unsigned char)mode };
   unsigned char rx_data[6] = { 0 };
   int ret = _bio_gripper_send_modbus(params, 6, rx_data, 6);
+  sleep_milliseconds(200);
   // reset mcu
   unsigned char params2[6] = { 0x08, 0x06, 0x06, 0x07, 0x00, 0x01 };
   _bio_gripper_send_modbus(params2, 6, rx_data, 6);

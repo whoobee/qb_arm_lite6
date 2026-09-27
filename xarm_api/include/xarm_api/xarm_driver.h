@@ -65,14 +65,6 @@ namespace xarm_api
         void _bio_gripper_action_execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<control_msgs::action::GripperCommand>> goal_handle);
         void _pub_bio_gripper_joint_states(int pos);
 
-        void _init_robotiq_gripper(void);
-        inline float _robotiq_gripper_pos_convert(float pos, bool reversed = false);
-        rclcpp_action::GoalResponse _handle_robotiq_gripper_action_goal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const control_msgs::action::GripperCommand::Goal> goal);
-        rclcpp_action::CancelResponse _handle_robotiq_gripper_action_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<control_msgs::action::GripperCommand>> goal_handle);
-        void _handle_robotiq_gripper_action_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<control_msgs::action::GripperCommand>> goal_handle);
-        void _robotiq_gripper_action_execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<control_msgs::action::GripperCommand>> goal_handle);
-        void _pub_robotiq_gripper_joint_states(int pos);
-
         template<typename ServiceT, typename CallbackT>
     	typename rclcpp::Service<ServiceT>::SharedPtr _create_service(const std::string & service_name, CallbackT && callback);
 
@@ -91,6 +83,8 @@ namespace xarm_api
     private:
         rclcpp::Node::SharedPtr node_;
         rclcpp::Node::SharedPtr hw_node_;
+
+        SocketPort *sock_rt_;
 
         int dof_;
         int joint_state_rate_;
@@ -132,15 +126,6 @@ namespace xarm_api
         control_msgs::action::GripperCommand::Feedback::SharedPtr bio_gripper_feedback_;
         control_msgs::action::GripperCommand::Result::SharedPtr bio_gripper_result_;
         rclcpp_action::Server<control_msgs::action::GripperCommand>::SharedPtr bio_gripper_action_server_;
-
-        bool robotiq_gripper_init_loop_;
-        int robotiq_gripper_frequency_;
-        int robotiq_gripper_threshold_;
-        int robotiq_gripper_threshold_times_;
-        sensor_msgs::msg::JointState robotiq_gripper_joint_state_msg_;
-        control_msgs::action::GripperCommand::Feedback::SharedPtr robotiq_gripper_feedback_;
-        control_msgs::action::GripperCommand::Result::SharedPtr robotiq_gripper_result_;
-        rclcpp_action::Server<control_msgs::action::GripperCommand>::SharedPtr robotiq_gripper_action_server_;
     
     private:
         bool service_debug_;
@@ -260,7 +245,7 @@ namespace xarm_api
         rclcpp::Service<xarm_msgs::srv::SetInt16>::SharedPtr service_set_only_check_type_;
         rclcpp::Service<xarm_msgs::srv::SetInt16>::SharedPtr service_config_tgpio_reset_when_stop_;
         rclcpp::Service<xarm_msgs::srv::SetInt16>::SharedPtr service_config_cgpio_reset_when_stop_;
-        rclcpp::Service<xarm_msgs::srv::SetInt16>::SharedPtr service_set_tgpio_modbus_use_503_port_;
+        rclcpp::Service<xarm_msgs::srv::SetInt16>::SharedPtr service_set_rs485_use_503_port_;
         // OLD SERVICE
         rclcpp::Service<xarm_msgs::srv::SetInt16>::SharedPtr service_ft_sensor_enable_;
         rclcpp::Service<xarm_msgs::srv::SetInt16>::SharedPtr service_ft_sensor_app_set_;
@@ -289,7 +274,7 @@ namespace xarm_api
         bool _set_only_check_type(const std::shared_ptr<xarm_msgs::srv::SetInt16::Request> req, std::shared_ptr<xarm_msgs::srv::SetInt16::Response> res);
         bool _config_tgpio_reset_when_stop(const std::shared_ptr<xarm_msgs::srv::SetInt16::Request> req, std::shared_ptr<xarm_msgs::srv::SetInt16::Response> res);
         bool _config_cgpio_reset_when_stop(const std::shared_ptr<xarm_msgs::srv::SetInt16::Request> req, std::shared_ptr<xarm_msgs::srv::SetInt16::Response> res);
-        bool _set_tgpio_modbus_use_503_port(const std::shared_ptr<xarm_msgs::srv::SetInt16::Request> req, std::shared_ptr<xarm_msgs::srv::SetInt16::Response> res);
+        bool _set_rs485_use_503_port(const std::shared_ptr<xarm_msgs::srv::SetInt16::Request> req, std::shared_ptr<xarm_msgs::srv::SetInt16::Response> res);
 
         // SetInt16ById
         rclcpp::Service<xarm_msgs::srv::SetInt16ById>::SharedPtr service_motion_enable_;
@@ -302,6 +287,9 @@ namespace xarm_api
         // SetInt16List
         rclcpp::Service<xarm_msgs::srv::SetInt16List>::SharedPtr service_set_reduced_tcp_boundary_;
         bool _set_reduced_tcp_boundary(const std::shared_ptr<xarm_msgs::srv::SetInt16List::Request> req, std::shared_ptr<xarm_msgs::srv::SetInt16List::Response> res);
+
+        rclcpp::Service<xarm_msgs::srv::SetInt16List>::SharedPtr service_set_external_device_monitor_params_;
+        bool _set_external_device_monitor_params(const std::shared_ptr<xarm_msgs::srv::SetInt16List::Request> req, std::shared_ptr<xarm_msgs::srv::SetInt16List::Response> res);
         
         // GetInt32
         rclcpp::Service<xarm_msgs::srv::GetInt32>::SharedPtr service_get_tgpio_modbus_baudrate_;

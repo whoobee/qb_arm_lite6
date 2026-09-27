@@ -160,19 +160,10 @@ namespace uf_robot_hardware
 
     CallbackReturn UFRobotSystemHardware::on_init(const hardware_interface::HardwareInfo& info)
     {
-        info_ = info;
-        
-        // Initialize state and command vectors BEFORE calling parent on_init()
-        // to ensure they are valid when export_state_interfaces() and export_command_interfaces() are called
-        position_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-        velocity_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-        position_cmds_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-        velocity_cmds_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-
         if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS) {
             return CallbackReturn::ERROR;
         }
-
+        info_ = info;
         velocity_control_ = false;
         read_code_ = 0;
         write_code_ = 0;
@@ -188,6 +179,11 @@ namespace uf_robot_hardware
         memset(prev_cmds_float_, 0, sizeof(prev_cmds_float_));
 
         _init_ufactory_driver();
+        
+        position_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+        velocity_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+        position_cmds_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+        velocity_cmds_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
         for (const hardware_interface::ComponentInfo & joint : info_.joints) {
             bool has_pos_cmd_interface = false;

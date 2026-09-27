@@ -1,3 +1,7 @@
+> **qb_arm copy:** unmodified [xArm-Developer/xarm_ros2](https://github.com/xArm-Developer/xarm_ros2) `jazzy` branch
+> at commit `3dc2b5e` ("[fix] fix xarm_gazebo depend"), with the `xarm_sdk/cxx` submodule (v1.18.1, `d84a2b7`)
+> included as plain files. Used by [whoobee/qb_arm](https://github.com/whoobee/qb_arm) for the Lite6 on ROS 2 Jazzy.
+
 # xarm_ros2
 
 For simplified Chinese version: [简体中文版](./ReadMe_cn.md)
@@ -302,6 +306,8 @@ __Reminder 4: The <hw_ns> described below is replaced with the actual one, the x
         # 'add_gripper_2': can separately decide whether to attach gripper for right arm，default for same value with 'add_gripper'
         # 'dof_1': can separately configure the model DOF of left arm，default to be the same DOF specified in filename.
         # 'dof_2': can separately configure the model DOF of right arm，default to be the same DOF specified in filename.
+        # 'attach_xyz_1'/'attach_rpy_1': position/orientation of the first arm，defaults to '0 0 0'.
+        # 'attach_xyz_2'/'attach_rpy_2': position/orientation of the second arm，defaults to '0 1 0'/'0 0 0'.
         
         # For xArm (xarm6 here):
         ros2 launch xarm_moveit_config dual_xarm6_moveit_fake.launch.py [add_gripper:=true]
@@ -324,6 +330,8 @@ __Reminder 4: The <hw_ns> described below is replaced with the actual one, the x
         # 'add_gripper_2': can separately decide whether to attach gripper for right arm，default for same value with 'add_gripper'
         # 'dof_1': can separately configure the model DOF of left arm，default to be the same DOF specified in filename.
         # 'dof_2': can separately configure the model DOF of right arm，default to be the same DOF specified in filename.
+        # 'attach_xyz_1'/'attach_rpy_1': position/orientation of the first arm，defaults to '0 0 0'.
+        # 'attach_xyz_2'/'attach_rpy_2': position/orientation of the second arm，defaults to '0 1 0'/'0 0 0'.
         
         # For xArm (xarm6 here):
         ros2 launch xarm_moveit_config dual_xarm6_moveit_realmove.launch.py robot_ip_1:=192.168.1.117 robot_ip_2:=192.168.1.203 [add_gripper:=true]

@@ -28,6 +28,10 @@ def launch_setup(context, *args, **kwargs):
     robot_type_2 = LaunchConfiguration('robot_type_2', default=robot_type)
     prefix_1 = LaunchConfiguration('prefix_1', default='L_')
     prefix_2 = LaunchConfiguration('prefix_2', default='R_')
+    attach_xyz_1 = LaunchConfiguration('attach_xyz_1', default='"0 0 0"')
+    attach_rpy_1 = LaunchConfiguration('attach_rpy_1', default='"0 0 0"')
+    attach_xyz_2 = LaunchConfiguration('attach_xyz_2', default='"0 1 0"')
+    attach_rpy_2 = LaunchConfiguration('attach_rpy_2', default='"0 0 0"')
     hw_ns = LaunchConfiguration('hw_ns', default='xarm')
     limited = LaunchConfiguration('limited', default=True)
     effort_control = LaunchConfiguration('effort_control', default=False)
@@ -42,6 +46,10 @@ def launch_setup(context, *args, **kwargs):
     kinematics_suffix = LaunchConfiguration('kinematics_suffix', default='')
     kinematics_suffix_1 = LaunchConfiguration('kinematics_suffix_1', default=kinematics_suffix)
     kinematics_suffix_2 = LaunchConfiguration('kinematics_suffix_2', default=kinematics_suffix)
+
+    gripper_version = LaunchConfiguration('gripper_version', default='G1')
+    gripper_version_1 = LaunchConfiguration('gripper_version_1', default=gripper_version)
+    gripper_version_2 = LaunchConfiguration('gripper_version_2', default=gripper_version)
 
     add_gripper = LaunchConfiguration('add_gripper', default=False)
     add_gripper_1 = LaunchConfiguration('add_gripper_1', default=add_gripper)
@@ -134,11 +142,17 @@ def launch_setup(context, *args, **kwargs):
         model1300_2=model1300_2,
         robot_sn_1=robot_sn_1,
         robot_sn_2=robot_sn_2,
+        attach_xyz_1=attach_xyz_1,
+        attach_rpy_1=attach_rpy_1,
+        attach_xyz_2=attach_xyz_2,
+        attach_rpy_2=attach_rpy_2,
         mesh_suffix=mesh_suffix,
         kinematics_suffix_1=kinematics_suffix_1,
         kinematics_suffix_2=kinematics_suffix_2,
         ros2_control_plugin=ros2_control_plugin,
         ros2_control_params=ros2_control_params,
+        gripper_version_1=gripper_version_1,
+        gripper_version_2=gripper_version_2,
         add_gripper_1=add_gripper_1,
         add_gripper_2=add_gripper_2,
         add_vacuum_gripper_1=add_vacuum_gripper_1,
@@ -195,6 +209,10 @@ def launch_setup(context, *args, **kwargs):
         launch_arguments={
             'prefix_1': prefix_1,
             'prefix_2': prefix_2,
+            'attach_xyz_1': attach_xyz_1,
+            'attach_rpy_1': attach_rpy_1,
+            'attach_xyz_2': attach_xyz_2,
+            'attach_rpy_2': attach_rpy_2,
             'no_gui_ctrl': no_gui_ctrl,
             'use_sim_time': 'false',
             'moveit_config_dump': yaml.dump(moveit_config.to_dict()),
@@ -205,11 +223,11 @@ def launch_setup(context, *args, **kwargs):
         '{}{}_traj_controller'.format(prefix_1.perform(context), xarm_type_1),
         '{}{}_traj_controller'.format(prefix_2.perform(context), xarm_type_2),
     ]
-    if add_gripper_1.perform(context) in ('True', 'true') and robot_type_1.perform(context) != 'lite':
+    if add_gripper_1.perform(context) in ('True', 'true'):
         controllers.append('{}{}_gripper_traj_controller'.format(prefix_1.perform(context), robot_type_1.perform(context)))
     elif add_bio_gripper_1.perform(context) in ('True', 'true') and robot_type_1.perform(context) != 'lite':
         controllers.append('{}bio_gripper_traj_controller'.format(prefix_1.perform(context)))
-    if add_gripper_2.perform(context) in ('True', 'true') and robot_type_2.perform(context) != 'lite':
+    if add_gripper_2.perform(context) in ('True', 'true'):
         controllers.append('{}{}_gripper_traj_controller'.format(prefix_2.perform(context), robot_type_2.perform(context)))
     elif add_bio_gripper_2.perform(context) in ('True', 'true') and robot_type_2.perform(context) != 'lite':
         controllers.append('{}bio_gripper_traj_controller'.format(prefix_2.perform(context)))

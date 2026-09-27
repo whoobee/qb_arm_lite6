@@ -18,7 +18,7 @@ class ControllersYAML(BaseYamlSubstitution):
 
     def __init__(self, file_path, package_path=None, 
         prefix='', robot_type='xarm', robot_dof=7, 
-        add_gripper=False, add_bio_gripper=False, add_robotiq_arg85=False,
+        add_gripper=False, add_bio_gripper=False, 
         controllers_name=''):
         super().__init__()
         self.__file_path = file_path
@@ -29,7 +29,6 @@ class ControllersYAML(BaseYamlSubstitution):
         self.__robot_dof = robot_dof
         self.__add_gripper = add_gripper
         self.__add_bio_gripper = add_bio_gripper
-        self.__add_robotiq_arg85 = add_robotiq_arg85
         self.__controllers_name = controllers_name
 
     @classmethod
@@ -43,7 +42,7 @@ class ControllersYAML(BaseYamlSubstitution):
 
     def describe(self):
         """Return a description of this substitution as a string."""
-        return 'ControllersYAML(file_path={}, package_path={}, prefix={}, robot_type={}, add_gripper={}, add_bio_gripper={}, add_robotiq_arg85={}, controllers_name={})'.format(
+        return 'ControllersYAML(file_path={}, package_path={}, prefix={}, robot_type={}, add_gripper={}, add_bio_gripper={}, controllers_name={})'.format(
             self.get_var_describe(self.__file_path),
             self.get_var_describe(self.__package_path),
             self.get_var_describe(self.__prefix),
@@ -51,7 +50,6 @@ class ControllersYAML(BaseYamlSubstitution):
             self.get_var_describe(self.__robot_dof),
             self.get_var_describe(self.__add_gripper),
             self.get_var_describe(self.__add_bio_gripper),
-            self.get_var_describe(self.__add_robotiq_arg85),
             self.get_var_describe(self.__controllers_name)
         )
 
@@ -64,7 +62,6 @@ class ControllersYAML(BaseYamlSubstitution):
         robot_dof = self.get_var_perform(self.__robot_dof, context)
         add_gripper = self.get_var_perform(self.__add_gripper, context).lower() == 'true'
         add_bio_gripper = self.get_var_perform(self.__add_bio_gripper, context).lower() == 'true'
-        add_robotiq_arg85 = self.get_var_perform(self.__add_robotiq_arg85, context).lower() == 'true'
         controllers_name = self.get_var_perform(self.__controllers_name, context)
    
         robot_name = '{}{}'.format(robot_type, robot_dof if robot_type == 'xarm' else '6' if robot_type == 'lite' else '')
@@ -85,14 +82,6 @@ class ControllersYAML(BaseYamlSubstitution):
                         controllers_yaml[name] = gripper_controllers_yaml[name]
         elif robot_type != 'lite' and add_bio_gripper:
             gripper_controllers_yaml = load_yaml(self.__package_path / 'config' / 'bio_gripper' / controllers_name)
-            if gripper_controllers_yaml:
-                for name in gripper_controllers_yaml['controller_names']:
-                    if name in gripper_controllers_yaml:
-                        if name not in controllers_yaml['controller_names']:
-                            controllers_yaml['controller_names'].append(name)
-                        controllers_yaml[name] = gripper_controllers_yaml[name]
-        elif add_robotiq_arg85:
-            gripper_controllers_yaml = load_yaml(self.__package_path / 'config' / 'robotiq_arg85' / controllers_name)
             if gripper_controllers_yaml:
                 for name in gripper_controllers_yaml['controller_names']:
                     if name in gripper_controllers_yaml:

@@ -39,11 +39,11 @@ def launch_setup(context, *args, **kwargs):
     attach_rpy = LaunchConfiguration('attach_rpy', default='"0 0 0"')
     mesh_suffix = LaunchConfiguration('mesh_suffix', default='stl')
     kinematics_suffix = LaunchConfiguration('kinematics_suffix', default='')
+    gripper_version = LaunchConfiguration('gripper_version', default='G1')
 
     add_gripper = LaunchConfiguration('add_gripper', default=False)
     add_vacuum_gripper = LaunchConfiguration('add_vacuum_gripper', default=False)
     add_bio_gripper = LaunchConfiguration('add_bio_gripper', default=False)
-    add_robotiq_arg85 = LaunchConfiguration('add_robotiq_arg85', default=False)
     add_realsense_d435i = LaunchConfiguration('add_realsense_d435i', default=False)
     add_d435i_links = LaunchConfiguration('add_d435i_links', default=True)
     add_other_geometry = LaunchConfiguration('add_other_geometry', default=False)
@@ -71,7 +71,6 @@ def launch_setup(context, *args, **kwargs):
         prefix=prefix.perform(context), 
         add_gripper=add_gripper.perform(context) in ('True', 'true'),
         add_bio_gripper=add_bio_gripper.perform(context) in ('True', 'true'),
-        add_robotiq_arg85=add_robotiq_arg85.perform(context) in ('True', 'true'),
         ros_namespace=ros_namespace,
         robot_type=robot_type.perform(context)
     )
@@ -99,10 +98,10 @@ def launch_setup(context, *args, **kwargs):
         kinematics_suffix=kinematics_suffix,
         ros2_control_plugin=ros2_control_plugin,
         ros2_control_params=ros2_control_params,
+        gripper_version=gripper_version,
         add_gripper=add_gripper,
         add_vacuum_gripper=add_vacuum_gripper,
         add_bio_gripper=add_bio_gripper,
-        add_robotiq_arg85=add_robotiq_arg85,
         add_realsense_d435i=add_realsense_d435i,
         add_d435i_links=add_d435i_links,
         add_other_geometry=add_other_geometry,

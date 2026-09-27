@@ -42,7 +42,7 @@ class PlanningPipelinesYAML(BaseYamlSubstitution):
 
     def __init__(self, pipeline, package_path=None, config_folder=None,
         prefix='', robot_type='xarm', robot_dof=7, 
-        add_gripper=False, add_bio_gripper=False, add_robotiq_arg85=False):
+        add_gripper=False, add_bio_gripper=False):
         super().__init__()
         self.__pipeline = pipeline
         self.__package_path = package_path
@@ -52,7 +52,6 @@ class PlanningPipelinesYAML(BaseYamlSubstitution):
         self.__robot_dof = robot_dof
         self.__add_gripper = add_gripper
         self.__add_bio_gripper = add_bio_gripper
-        self.__add_robotiq_arg85 = add_robotiq_arg85
 
     @classmethod
     def parse(cls, data):
@@ -65,15 +64,14 @@ class PlanningPipelinesYAML(BaseYamlSubstitution):
 
     def describe(self):
         """Return a description of this substitution as a string."""
-        return 'PlanningPipelinesYAML({}, package_path={}, prefix={}, robot_type={}, robot_dof={}, add_gripper={}, add_bio_gripper={}, add_robotiq_arg85={})'.format(
+        return 'PlanningPipelinesYAML({}, package_path={}, prefix={}, robot_type={}, robot_dof={}, add_gripper={}, add_bio_gripper={})'.format(
             self.get_var_describe(self.__pipeline), 
             self.get_var_describe(self.__package_path),
             self.get_var_describe(self.__prefix),
             self.get_var_describe(self.__robot_type),
             self.get_var_describe(self.__robot_dof),
             self.get_var_describe(self.__add_gripper),
-            self.get_var_describe(self.__add_bio_gripper),
-            self.get_var_describe(self.__add_robotiq_arg85)
+            self.get_var_describe(self.__add_bio_gripper)
         )
 
     def perform(self, context):
@@ -86,7 +84,6 @@ class PlanningPipelinesYAML(BaseYamlSubstitution):
         robot_dof = self.get_var_perform(self.__robot_dof, context)
         add_gripper = self.get_var_perform(self.__add_gripper, context).lower() == 'true'
         add_bio_gripper = self.get_var_perform(self.__add_bio_gripper, context).lower() == 'true'
-        add_robotiq_arg85 = self.get_var_perform(self.__add_robotiq_arg85, context).lower() == 'true'
 
         robot_name = '{}{}'.format(robot_type, robot_dof if robot_type == 'xarm' else '6' if robot_type == 'lite' else '')
 
@@ -113,12 +110,6 @@ class PlanningPipelinesYAML(BaseYamlSubstitution):
                     pipeline_planning_yaml.update(gripper_planning_yaml)
         elif robot_type != 'lite' and add_bio_gripper:
             parameter_file = self.__package_path / 'config' / 'bio_gripper' / filename
-            if parameter_file.exists():
-                gripper_planning_yaml = load_yaml(parameter_file)
-                if gripper_planning_yaml:
-                    pipeline_planning_yaml.update(gripper_planning_yaml)
-        elif add_robotiq_arg85:
-            parameter_file = self.__package_path / 'config' / 'robotiq_arg85' / filename
             if parameter_file.exists():
                 gripper_planning_yaml = load_yaml(parameter_file)
                 if gripper_planning_yaml:

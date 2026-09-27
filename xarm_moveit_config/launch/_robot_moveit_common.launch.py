@@ -28,7 +28,6 @@ def launch_setup(context, *args, **kwargs):
     add_gripper = LaunchConfiguration('add_gripper', default=False)
     add_vacuum_gripper = LaunchConfiguration('add_vacuum_gripper', default=False)
     add_bio_gripper = LaunchConfiguration('add_bio_gripper', default=False)
-    add_robotiq_arg85 = LaunchConfiguration('add_robotiq_arg85', default=False)
     dof = LaunchConfiguration('dof', default=7)
     robot_type = LaunchConfiguration('robot_type', default='xarm')
     no_gui_ctrl = LaunchConfiguration('no_gui_ctrl', default=False)
@@ -81,7 +80,6 @@ def launch_setup(context, *args, **kwargs):
             'add_gripper': add_gripper,
             'add_vacuum_gripper': add_vacuum_gripper,
             'add_bio_gripper': add_bio_gripper,
-            'add_robotiq_arg85': add_robotiq_arg85,
             'dof': dof,
             'robot_type': robot_type,
             'ros2_control_plugin': ros2_control_plugin,
@@ -112,7 +110,6 @@ def launch_setup(context, *args, **kwargs):
             'add_gripper': add_gripper,
             'add_vacuum_gripper': add_vacuum_gripper,
             'add_bio_gripper': add_bio_gripper,
-            'add_robotiq_arg85': add_robotiq_arg85,
             'add_other_geometry': add_other_geometry,
         },
         arguments={
@@ -131,21 +128,6 @@ def launch_setup(context, *args, **kwargs):
         gripper_controllers_yaml = load_yaml(moveit_config_package_name, 'config', '{}_gripper'.format(robot_type.perform(context)), '{}.yaml'.format(controllers_name.perform(context)))
         gripper_ompl_planning_yaml = load_yaml(moveit_config_package_name, 'config', '{}_gripper'.format(robot_type.perform(context)), 'ompl_planning.yaml')
         gripper_joint_limits_yaml = load_yaml(moveit_config_package_name, 'config', '{}_gripper'.format(robot_type.perform(context)), 'joint_limits.yaml')
-
-        if gripper_controllers_yaml and 'controller_names' in gripper_controllers_yaml:
-            for name in gripper_controllers_yaml['controller_names']:
-                if name in gripper_controllers_yaml:
-                    if name not in controllers_yaml['controller_names']:
-                        controllers_yaml['controller_names'].append(name)
-                    controllers_yaml[name] = gripper_controllers_yaml[name]
-        if gripper_ompl_planning_yaml:
-            ompl_planning_yaml.update(gripper_ompl_planning_yaml)
-        if joint_limits_yaml and gripper_joint_limits_yaml:
-            joint_limits_yaml['joint_limits'].update(gripper_joint_limits_yaml['joint_limits'])
-    elif add_robotiq_arg85.perform(context) in ('True', 'true'):
-        gripper_controllers_yaml = load_yaml(moveit_config_package_name, 'config', 'robotiq_arg85', '{}.yaml'.format(controllers_name.perform(context)))
-        gripper_ompl_planning_yaml = load_yaml(moveit_config_package_name, 'config', 'robotiq_arg85', 'ompl_planning.yaml')
-        gripper_joint_limits_yaml = load_yaml(moveit_config_package_name, 'config', 'robotiq_arg85', 'joint_limits.yaml')
 
         if gripper_controllers_yaml and 'controller_names' in gripper_controllers_yaml:
             for name in gripper_controllers_yaml['controller_names']:

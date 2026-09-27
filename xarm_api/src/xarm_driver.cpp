@@ -282,7 +282,99 @@ namespace xarm_api
         _init_subscription();
         _init_xarm_gripper();
         _init_bio_gripper();
-        _init_robotiq_gripper();
+
+        bool add_gripper;
+        node_->get_parameter_or("add_gripper", add_gripper, false);
+
+        bool add_bio_gripper;
+        node_->get_parameter_or("add_bio_gripper", add_bio_gripper, false);
+
+        if (_firmware_version_is_ge(2, 7, 101) && (add_gripper || add_bio_gripper)) {
+            sock_rt_ = new SocketPort((char *)server_ip.data(), 30000, 10, 1024, 1);
+            std::thread([this]() {
+                int ret;
+                int size = 0;
+                unsigned char rx_data[1024];
+
+                // float target_joint_positions[7];
+                // float target_joint_velocities[7];
+                // float target_joint_accelerations[7];
+                // float actual_joint_positions[7];
+                // float actual_joint_velocities[7];
+                // float actual_joint_accelerations[7];
+                // float actual_joint_currents[7];
+                // float estimated_joint_torques[7];
+
+                // float ftsensor_raw_data[6];
+                // float ftsensor_filtered_data[6];
+
+                int dev_type = 0;
+                // int dev_status = 0;
+                int external_device_info[3];
+                int gripper_pulse;
+
+                while (arm->is_connected()) {
+                    if (sock_rt_->is_ok() != 0) {
+                        RCLCPP_ERROR(node_->get_logger(), "SocketPort 30000 disconnected!");
+                        break;
+                    }
+                    memset(rx_data, 0, 1024);
+                    ret = sock_rt_->read_frame(rx_data);
+                    if (ret != 0) continue;
+                    if (size == 0) size = bin8_to_32(rx_data + 4);
+                    unsigned char *data_fp = &rx_data[4];
+
+                    // hex_to_nfp32(data_fp + 32, target_joint_positions, 7);
+                    // hex_to_nfp32(data_fp + 60, target_joint_velocities, 7);
+                    // // hex_to_nfp32(data_fp + 88, target_joint_accelerations, 7);
+                    // hex_to_nfp32(data_fp + 116, actual_joint_positions, 7);
+                    // hex_to_nfp32(data_fp + 144, actual_joint_velocities, 7);
+                    // // hex_to_nfp32(data_fp + 172, actual_joint_accelerations, 7);
+                    // hex_to_nfp32(data_fp + 200, actual_joint_currents, 7);
+                    // hex_to_nfp32(data_fp + 118, estimated_joint_torques, 7);
+
+                    // hex_to_nfp32(data_fp + 688, ftsensor_raw_data, 6);
+                    // hex_to_nfp32(data_fp + 712, ftsensor_filtered_data, 6);
+
+                    dev_type = data_fp[736];
+                    // dev_status = data_fp[737];
+                    bin8_to_ns16(data_fp + 738, external_device_info, 3);
+
+                    // joint_state_msg_.header.stamp = node_->get_clock()->now();
+                    // for(int i = 0; i < dof_; i++)
+                    // {
+                    //     if (joint_state_flags_ & 0x01) {
+                    //         joint_state_msg_.position[i] = (double)target_joint_positions[i];
+                    //     }
+                    //     else {
+                    //         joint_state_msg_.position[i] = (double)actual_joint_positions[i];
+                    //     }
+                    //     if (joint_state_flags_ & 0x02) {
+                    //         joint_state_msg_.velocity[i] = (double)target_joint_velocities[i];
+                    //     }
+                    //     else {
+                    //         joint_state_msg_.velocity[i] = (double)actual_joint_velocities[i];
+                    //     }
+                    //     joint_state_msg_.effort[i] = (double)estimated_joint_torques[i];
+                    // }
+                    // pub_joint_state(joint_state_msg_);
+
+                    if (dev_type == 1 || dev_type == 2) {
+                        gripper_pulse = (int)((asin((external_device_info[0] - 16) / 110.0) * 57.29577951308232 + 8.33) * 18.28);
+                        _pub_xarm_gripper_joint_states(gripper_pulse);
+                    }
+                    else if (dev_type == 3) {
+                        // 注: 这里是mm
+                        _pub_bio_gripper_joint_states(external_device_info[0]);
+                    }
+
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                }
+            }).detach();
+        }
+        else {
+            sock_rt_ = NULL;
+        }
     }
 
     bool XArmDriver::_firmware_version_is_ge(int major, int minor, int revision)
@@ -785,165 +877,6 @@ namespace xarm_api
                 RCLCPP_ERROR(node_->get_logger(), "bio goal_handle succeed exception, ex=%s", e.what());
             }
             RCLCPP_INFO(node_->get_logger(), "bio Goal succeeded");
-        }
-    }
-
-    void XArmDriver::_init_robotiq_gripper(void)
-    {
-        node_->get_parameter_or("robotiq_gripper.frequency", robotiq_gripper_frequency_, 10);
-        node_->get_parameter_or("robotiq_gripper.threshold", robotiq_gripper_threshold_, 3);
-        node_->get_parameter_or("robotiq_gripper.threshold_times", robotiq_gripper_threshold_times_, 10);
-
-        robotiq_gripper_feedback_ = std::make_shared<control_msgs::action::GripperCommand::Feedback>();
-        robotiq_gripper_result_ = std::make_shared<control_msgs::action::GripperCommand::Result>();
-        robotiq_gripper_joint_state_msg_.header.stamp = node_->get_clock()->now();
-        robotiq_gripper_joint_state_msg_.header.frame_id = "robotiq-gripper-joint-state data";        
-        robotiq_gripper_joint_state_msg_.name.resize(1);
-        robotiq_gripper_joint_state_msg_.position.resize(1, std::numeric_limits<double>::quiet_NaN());
-        robotiq_gripper_joint_state_msg_.velocity.resize(1, std::numeric_limits<double>::quiet_NaN());
-        robotiq_gripper_joint_state_msg_.effort.resize(1, std::numeric_limits<double>::quiet_NaN());
-        
-        std::string prefix = "";
-        node_->get_parameter_or("prefix", prefix, std::string(""));
-        robotiq_gripper_joint_state_msg_.name[0] = prefix + "finger_joint";
-
-        robotiq_gripper_action_server_ = rclcpp_action::create_server<control_msgs::action::GripperCommand>(
-            node_, prefix + "robotiq_gripper/gripper_action",
-            BIND_CLS_CB(&XArmDriver::_handle_robotiq_gripper_action_goal),
-            BIND_CLS_CB_1(&XArmDriver::_handle_robotiq_gripper_action_cancel),
-            BIND_CLS_CB_1(&XArmDriver::_handle_robotiq_gripper_action_accepted));
-        
-        bool add_robotiq_arg85;
-        node_->get_parameter_or("add_robotiq_arg85", add_robotiq_arg85, false);
-        if (add_robotiq_arg85) {
-            arm->robotiq_set_activate(true);
-            robotiq_gripper_init_loop_ = false;
-            std::thread([this]() {
-                unsigned char status[9];
-                int ret = arm->robotiq_get_status(status);
-                while (ret == 0 && !robotiq_gripper_init_loop_)
-                {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                    _pub_robotiq_gripper_joint_states(status[6]); // gPR is target position
-                }
-            }).detach();
-        }
-    }
-
-    inline float XArmDriver::_robotiq_gripper_pos_convert(float pos, bool reversed)
-    {
-        if (reversed) {
-            // MoveIt (0 to 0.725) to Robotiq (0 to 255)
-            return pos * 255.0 / 0.725;
-        }
-        else {
-            // Robotiq (0 to 255) to MoveIt (0 to 0.725)
-            return pos * 0.725 / 255.0;
-        }
-    }
-
-    void XArmDriver::_pub_robotiq_gripper_joint_states(int pos)
-    {
-        robotiq_gripper_joint_state_msg_.header.stamp = node_->get_clock()->now();
-        float p = _robotiq_gripper_pos_convert(pos);
-        robotiq_gripper_joint_state_msg_.position[0] = p;
-        pub_joint_state(robotiq_gripper_joint_state_msg_);
-    }
-
-    rclcpp_action::GoalResponse XArmDriver::_handle_robotiq_gripper_action_goal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const control_msgs::action::GripperCommand::Goal> goal)
-    {
-        RCLCPP_INFO(node_->get_logger(), "Received robotiq gripper move goal request, position=%f, max_effort=%f", goal->command.position, goal->command.max_effort);
-        (void)uuid;
-        return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
-    }
-
-    rclcpp_action::CancelResponse XArmDriver::_handle_robotiq_gripper_action_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<control_msgs::action::GripperCommand>> goal_handle)
-    {
-        RCLCPP_INFO(node_->get_logger(), "Received request to cancel robotiq gripper move goal");
-        (void)goal_handle;
-        return rclcpp_action::CancelResponse::ACCEPT;
-    }
-
-    void XArmDriver::_handle_robotiq_gripper_action_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<control_msgs::action::GripperCommand>> goal_handle)
-    {
-        std::thread{BIND_CLS_CB_1(&XArmDriver::_robotiq_gripper_action_execute), goal_handle}.detach();
-    }
-
-    void XArmDriver::_robotiq_gripper_action_execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<control_msgs::action::GripperCommand>> goal_handle)
-    {
-        robotiq_gripper_init_loop_ = true;
-        const auto goal = goal_handle->get_goal();
-        
-        int ret;
-        unsigned char status[9];
-        ret = arm->robotiq_get_status(status);
-        if (ret != 0) {
-            try {
-                goal_handle->canceled(robotiq_gripper_result_);
-            } catch (std::exception &e) {
-                RCLCPP_ERROR(node_->get_logger(), "robotiq goal_handle canceled exception, ex=%s", e.what());    
-            }
-            return;
-        }
-        _pub_robotiq_gripper_joint_states(status[7]); // gPO is actual position
-
-        int target_pos = (int)_robotiq_gripper_pos_convert(goal->command.position, true);
-        if (target_pos > 255) target_pos = 255;
-        if (target_pos < 0) target_pos = 0;
-
-        ret = arm->robotiq_set_position(target_pos, 0xFF, 0xFF, false); // wait=false
-        
-        int last_pos = -1;
-        int cnt = 0;
-        bool is_succeed = false;
-        auto sltime = std::chrono::nanoseconds(1000000000 / robotiq_gripper_frequency_);
-        
-        while (rclcpp::ok())
-        {
-            std::this_thread::sleep_for(sltime);
-            ret = arm->robotiq_get_status(status);
-            if (ret == 0) {
-                int curr_pos = status[7]; // gPO
-                if (!is_succeed) {
-                    if (abs(last_pos - curr_pos) < robotiq_gripper_threshold_) {
-                        cnt += 1;
-                        if (cnt >= robotiq_gripper_threshold_times_ && abs(target_pos - curr_pos) < 15) {
-                            robotiq_gripper_result_->position = _robotiq_gripper_pos_convert(curr_pos);
-                            try {
-                                goal_handle->succeed(robotiq_gripper_result_);
-                            } catch (std::exception &e) {
-                                RCLCPP_ERROR(node_->get_logger(), "robotiq goal_handle succeed exception, ex=%s", e.what()); 
-                            }
-                            is_succeed = true;
-                            break;
-                        }
-                    }
-                    else {
-                        cnt = 0;
-                        last_pos = curr_pos;
-                    }
-                }
-                robotiq_gripper_feedback_->position = _robotiq_gripper_pos_convert(curr_pos);
-                try {
-                    goal_handle->publish_feedback(robotiq_gripper_feedback_);
-                } catch (std::exception &e) {
-                    RCLCPP_ERROR(node_->get_logger(), "robotiq goal_handle publish_feedback exception, ex=%s", e.what());
-                }
-                _pub_robotiq_gripper_joint_states(curr_pos);
-            }
-            if (goal_handle->is_canceling()) {
-                break;
-            }
-        }
-        
-        if (rclcpp::ok() && !is_succeed) {
-            arm->robotiq_get_status(status);
-            robotiq_gripper_result_->position = _robotiq_gripper_pos_convert(status[7]);
-            if (goal_handle->is_canceling()) {
-                goal_handle->canceled(robotiq_gripper_result_);
-            } else {
-                goal_handle->succeed(robotiq_gripper_result_);
-            }
         }
     }
 
